@@ -1,0 +1,992 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0059)http://blog.csdn.net/liuxiaochen123/article/details/7737718 -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Hbase使用filter快速高效查询 - liuxiaochen123的专栏
+        - 博客频道 - CSDN.NET</title>
+    
+    <meta name="description" content="本博客是hbase使用filter快速高效查询的方法，我会慢慢补齐几大Filters1、Comparision Filters     1.1  RowFilter1.2 FamilyFilter     1.3 QualifierFilter     1.4 ValueFilter     1.5 DependentColumnFilter2、Dedicated">
+    <script type="text/javascript" async="" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ga.js"></script><script src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/jquery.js" type="text/javascript"></script>
+    <script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ad.js"></script>
+        <!--new top-->
+       
+        <link rel="stylesheet" href="http://static.csdn.net/public/common/toolbar/css/index.css">
+        <!--new top-->
+
+    <link rel="Stylesheet" type="text/css" href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/style.css">
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="http://blog.csdn.net/liuxiaochen123/rss/list">
+    <link rel="shortcut icon" href="http://blog.csdn.net/favicon.ico">
+    <link type="text/css" rel="stylesheet" href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/default.css">
+ 
+
+<link href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/bdsstyle.css" rel="stylesheet" type="text/css"><script type="text/javascript" charset="utf-8" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/tracking.js"></script><script type="text/javascript" charset="utf-8" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/main.js"></script><link type="text/css" rel="stylesheet" href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/style(1).css"><script src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/logger.js"></script></head>
+<body><div id="BAIDU_DUP_fp_wrapper" style="position: absolute; left: -1px; bottom: -1px; z-index: 0; width: 0px; height: 0px; overflow: hidden; visibility: hidden; display: none;"><iframe id="BAIDU_DUP_fp_iframe" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/o.htm" style="width: 0px; height: 0px; visibility: hidden; display: none;"></iframe></div><iframe frameborder="0" style="display: none;"></iframe><div id="bdshare_s" style="display: block;"><iframe id="bdsIfr" style="position:absolute;display:none;z-index:9999;" frameborder="0"></iframe><div id="bdshare_l" style="display: none;"><div id="bdshare_l_c"><h6>分享到</h6><ul><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_mshare mshare">一键分享</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_qzone qqkj">QQ空间</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_tsina xlwb">新浪微博</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_bdysc bdysc">百度云收藏</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_renren rrw">人人网</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_tqq txwb">腾讯微博</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_bdxc bdxc">百度相册</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_kaixin001 kxw">开心网</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_tqf txpy">腾讯朋友</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_tieba bdtb">百度贴吧</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_douban db">豆瓣网</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_tsohu shwb">搜狐微博</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_bdhome bdhome">百度新首页</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_sqq sqq">QQ好友</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_thx thx">和讯微博</a></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="bds_more">更多...</a></li></ul><p><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="goWebsite">百度分享</a></p></div></div></div>
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/html.js" type="text/javascript"></script><div class="csdn-toolbar csdn-toolbar-skin-black ">        <div class="container row center-block ">          <div class="col-md-3 pull-left logo clearfix"><a href="http://www.csdn.net/?ref=toolbar" title="CSDN首页" target="_blank" class="icon"></a><a title="频道首页" href="http://blog.csdn.net/?ref=toolbar_logo" target="_blank" class="img blog-icon"></a></div>          <div class="pull-right login-wrap unlogin">            <ul class="btns">              <li class="loginlink"><a href="https://passport.csdn.net/account/login?ref=toolbar" target="_top">登录&nbsp;</a>|<a target="_top" href="https://passport.csdn.net/account/register?ref=toolbar">&nbsp;注册</a></li>              <li class="search">                <div class="icon on-search-icon">                  <div class="wrap">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <form action="http://so.csdn.net/search" method="get" target="_blank">                      <input type="hidden" value="toolbar" name="ref" accesskey="2">                      <div class="border">                        <input placeholder="搜索" type="text" value="" name="q" accesskey="2"><span class="icon-enter-sm"></span>                      </div>                    </form>                  </div>                </div>              </li>              <li class="favor">                <div class="icon on-favor-icon">                  <div class="wrap">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <div style="display:none;" class="favor-success"><span class="msg">收藏成功</span>                      <div class="btns"><span class="btn btn-primary ok">确定</span></div>                    </div>                    <div style="display:none;" class="favor-failed"><span class="icon-danger-lg"></span><span class="msg">收藏失败，请重新收藏</span>                      <div class="btns"><span class="btn btn-primary ok">确定</span></div>                    </div>                    <form role="form" class="form-horizontal favor-form">                      <div class="form-group">                        <div class="clearfix">                          <label for="input-title" class="col-sm-2 control-label">标题</label>                          <div class="col-sm-10">                            <input id="inputTitle" type="text" placeholder="" class="title form-control">                          </div>                        </div>                        <div class="alert alert-danger"><strong></strong>标题不能为空</div>                      </div>                      <div class="form-group">                        <label for="input-url" class="col-sm-2 control-label">网址</label>                        <div class="col-sm-10">                          <input id="input-url" type="text" placeholder="" class="url form-control">                        </div>                      </div>                      <div class="form-group">                        <label for="input-tag" class="col-sm-2 tag control-label">标签</label>                        <div class="col-sm-10">                          <input id="input-tag" type="text" class="form-control tag">                        </div>                      </div>                      <div class="form-group">                        <label for="input-description" class="description col-sm-2 control-label">摘要</label>                        <div class="col-sm-10">                          <textarea id="input-description" class="form-control description"></textarea>                        </div>                      </div>                      <div class="form-group">                        <div class="col-sm-offset-2 col-sm-10 ft">                          <div class="col-sm-4 pull-left">                            <div class="checkbox">                              <label>                                <input type="checkbox" name="share" checked="checked" class="share">公开                              </label>                            </div>                          </div>                          <div class="col-sm-8 pull-right favor-btns">                            <button type="button" class="cancel btn btn-default">取消</button>                            <button type="submit" class="submit btn btn-primary">收藏</button>                          </div>                        </div>                      </div>                    </form>                  </div>                </div>              </li>              <li class="notify">                <div style="display:none" class="number"></div>                <div style="display:none" class="icon-hasnotes-sm"></div>                <div id="header_notice_num"></div>                <div class="icon on-notify-icon">                  <div class="wrap">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <div id="note1" class="csdn_note">                      <div class="box"></div>                    <iframe src="about:block" frameborder="0" allowtransparency="true" style="z-index:-1;position:absolute;top:0;left:0;width:100%;height:100%;background:transparent"></iframe></div>                  </div>                </div>              </li>              <li class="ugc">                <div class="icon on-ugc-icon">                  <div class="wrap clearfix">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <dl>                      <dt><a href="http://geek.csdn.net/news/expert?ref=toolbar" target="_blank" class="p-news clearfix"><em class="icon"></em><span>分享资讯</span></a></dt>                      <dt><a href="http://share.csdn.net/slides/new?ref=toolbar" target="_blank" class="p-doc clearfix"><em class="icon"></em><span>传PPT/文档</span></a></dt>                      <dt><a href="http://bbs.csdn.net/topics/new?ref=toolbar" target="_blank" class="p-ask clearfix"><em class="icon"></em><span>提问题</span></a></dt>                      <dt><a href="http://write.blog.csdn.net/postedit?ref=toolbar" target="_blank" class="p-blog clearfix"><em class="icon"></em><span>写博客</span></a></dt>                      <dt><a href="http://u.download.csdn.net/upload?ref=toolbar" target="_blank" class="p-src clearfix"><em class="icon"></em><span>传资源</span></a></dt>                      <dt><a href="https://code.csdn.net/projects/new?ref=toolbar" target="_blank" class="c-obj clearfix"><em class="icon"></em><span>创建项目</span></a></dt>                      <dt><a href="https://code.csdn.net/snippets/new?ref=toolbar" target="_blank" class="c-code clearfix"><em class="icon"></em><span>创建代码片</span></a></dt>                    </dl>                  </div>                </div>              </li>              <li class="profile">                <div class="icon on-profile-icon"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/100x100.jpg" class="curr-icon-img">                  <div class="wrap clearfix">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                    <div class="bd">                      <dl class="clearfix">                        <dt class="pull-left img"><a target="_blank" href="http://my.csdn.net/?ref=toolbar" class="avatar"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/100x100.jpg"></a></dt>                        <dd class="info"><a target="_blank" href="http://my.csdn.net/?ref=toolbar" class="nickname"></a><a class="set-nick" href="https://passport.csdn.net/account/profile">设置昵称<span class="write-icon"></span></a><span class="dec"><a class="fill-dec" href="https://passport.csdn.net/account/profile" target="_blank">编辑自我介绍，让更多人了解你<span class="write-icon"></span></a></span></dd>                      </dl>                    </div>                    <div class="ft clearfix"><a target="_blank" href="https://passport.csdn.net/account/profile?ref=toolbar" class="pull-left"><span class="icon settings"></span>设置</a><a href="https://passport.csdn.net/account/logout?ref=toolbar" target="_top" class="pull-right"><span class="icon quit"></span>退出</a></div>                  </div>                </div>              </li>              <li class="apps">                <div class="icon on-apps-icon">                  <div class="wrap clearfix">                    <div class="curr-icon-wrap">                      <div class="curr-icon"></div>                    </div>                  <div class="detail">                    <dl>                      <dt>                        <h5>社区</h5>                      </dt>                      <dd> <a href="http://blog.csdn.net/?ref=toolbar" target="_blank">博客</a></dd>                      <dd> <a href="http://bbs.csdn.net/?ref=toolbar" target="_blank">论坛</a></dd>                      <dd> <a href="http://download.csdn.net/?ref=toolbar" target="_blank">下载</a></dd>                      <dd><a href="http://share.csdn.net/?ref=toolbar" target="_blank">Share</a></dd>                      <dd><a href="http://geek.csdn.net/?ref=toolbar" target="_blank">极客头条</a></dd>                    </dl>                  </div>                  <div class="detail">                    <dl>                      <dt>                        <h5>服务</h5>                      </dt>                      <dd> <a href="https://code.csdn.net/?ref=toolbar" target="_blank">CODE</a></dd>                      <dd> <a href="http://hero.csdn.net/?ref=toolbar" target="_blank">英雄会</a></dd>                      <dd> <a href="http://huiyi.csdn.net/meeting?ref=toolbar" target="_blank">会议</a></dd>                    </dl>                  </div>                  <div class="detail last">                    <dl>                      <dt>                        <h5>俱乐部</h5>                      </dt>                      <dd> <a href="http://student.csdn.net/?ref=toolbar" target="_blank">高校俱乐部</a></dd>                    </dl>                  </div>                </div>              </div>            </li>            </ul>          </div>        </div>    </div>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/liuxiaochen123">liuxiaochen123的专栏</a></h2>
+            <h3></h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>
+                <li id="btnContents"><a href="http://blog.csdn.net/liuxiaochen123?viewmode=contents"><span onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_mulu&#39;])">
+                    <img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/liuxiaochen123?viewmode=list"><span onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_zhaiyao&#39;])">
+                    <img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/liuxiaochen123/rss/list"><span onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_RSS&#39;])">
+                    <img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ico_rss.gif">订阅</span></a></li>
+</ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "liuxiaochen123";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/liuxiaochen123";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "";
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+<div class="notice tracking-ad" data-mod="popu_3"> 
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/22283977" target="_blank">
+<font color="red">2014开源技术大会（读书汇）</font></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="http://g.csdn.net/5267173" target="_blank">
+<font color="blue">OpenStack企业应用之路浅析
+</font></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="http://www.csdn.net/article/2014-03-27/2819012" target="_blank">
+<font color="red">专访多信创始人胡泊：将二维码包装成产品 让物体开口说话
+</font></a>
+
+</div>                    <link href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/comment1.css" type="text/css" rel="stylesheet">
+<link href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/style1.css" type="text/css" rel="stylesheet">
+<div id="article_details" class="details">
+    <div class="article_title">
+    <span class="ico ico_type_Original"></span>
+    <h1>
+        <span class="link_title"><a href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET.htm">
+        Hbase使用filter快速高效查询
+        </a></span>
+    </h1>
+</div>
+
+    <div class="article_manage">
+        <span class="link_categories">
+        分类：
+            <a href="http://blog.csdn.net/liuxiaochen123/article/category/1187715" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_fenlei&#39;]);">HBase实际使用</a> 
+        </span>
+    <span class="link_postdate">2012-07-11 18:55</span>
+    <span class="link_view" title="阅读次数">7843人阅读</span>
+    <span class="link_comments" title="评论次数"><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#comments" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_pinglun&#39;])">评论</a>(3)</span>
+    <span class="link_collect"><a href="javascript:void(0);" onclick="javascript:_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_shoucang&#39;]);collectArticle(&#39;Hbase使用filter快速高效查询&#39;,&#39;7737718&#39;);return false;" title="收藏">收藏</a></span>
+    <span class="link_report"><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#report" onclick="javascript:_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_jubao&#39;]);report(7737718,2);return false;" title="举报">举报</a></span>
+    
+</div>
+<div class="tag2box"><a href="http://www.csdn.net/tag/filter" target="_blank" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_tag&#39;]);">filter</a><a href="http://www.csdn.net/tag/hbase" target="_blank" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_tag&#39;]);">hbase</a><a href="http://www.csdn.net/tag/string" target="_blank" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_tag&#39;]);">string</a><a href="http://www.csdn.net/tag/table" target="_blank" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_tag&#39;]);">table</a></div>
+
+    
+<div id="article_content" class="article_content">
+
+<div class="dp-highlighter bg_java"><div class="bar"><div class="tools"><b>[java]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 500px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_1" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_1" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=1&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-j"><li class="alt"><span><span>本博客是hbase使用filter快速高效查询的方法，我会慢慢补齐&nbsp;&nbsp;</span></span></li></ol></div><pre class="java" name="code" style="display: none;">本博客是hbase使用filter快速高效查询的方法，我会慢慢补齐</pre>
+<p>几大Filters<br>
+1、Comparision Filters<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 1.1&nbsp; RowFilter<br>
+1.2 FamilyFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 1.3 QualifierFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 1.4 ValueFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 1.5 DependentColumnFilter<br>
+2、Dedicated Filters<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.1 SingleColumnValueFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.2 SingleColumnValueExcludeFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.3 PrefixFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.4 PageFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.5 KeyOnlyFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.6 FirstKeyOnlyFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.7 TimestampsFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2.8 RandomRowFilter<br>
+3、Decorating Filters<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 3.1&nbsp; SkipFilter<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 3.2 WhileMatchFilters</p>
+<p>&nbsp;</p>
+<p>一个简单的示例 SingleColumnValueFilter</p>
+<p>&nbsp;</p>
+<div class="dp-highlighter bg_java"><div class="bar"><div class="tools"><b>[java]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 1201px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_2" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_2" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=2&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-j"><li class="alt"><span><span>&nbsp;</span><span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;</span><span class="keyword">void</span><span>&nbsp;selectByFilter(String&nbsp;tablename,List&lt;String&gt;&nbsp;arr)&nbsp;</span><span class="keyword">throws</span><span>&nbsp;IOException{&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HTable&nbsp;table=<span class="keyword">new</span><span>&nbsp;HTable(hbaseConfig,tablename);&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FilterList&nbsp;filterList&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;FilterList();&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Scan&nbsp;s1&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;Scan();&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span><span>(String&nbsp;v:arr){&nbsp;</span><span class="comment">//&nbsp;各个条件之间是“与”的关系&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;[]&nbsp;s=v.split(<span class="string">","</span><span>);&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filterList.addFilter(<span class="keyword">new</span><span>&nbsp;SingleColumnValueFilter(Bytes.toBytes(s[</span><span class="number">0</span><span>]),&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bytes.toBytes(s[<span class="number">1</span><span>]),&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CompareOp.EQUAL,Bytes.toBytes(s[<span class="number">2</span><span>])&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;添加下面这一行后，则只返回指定的cell，同一行中的其他cell不返回&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span></span></li><li class="alt"><span><span class="comment">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s1.addColumn(Bytes.toBytes(s[0]),&nbsp;Bytes.toBytes(s[1]));&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s1.setFilter(filterList);&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ResultScanner&nbsp;ResultScannerFilterList&nbsp;=&nbsp;table.getScanner(s1);&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span><span>(Result&nbsp;rr=ResultScannerFilterList.next();rr!=</span><span class="keyword">null</span><span>;rr=ResultScannerFilterList.next()){&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span><span>(KeyValue&nbsp;kv:rr.list()){&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(<span class="string">"row&nbsp;:&nbsp;"</span><span>+</span><span class="keyword">new</span><span>&nbsp;String(kv.getRow()));&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(<span class="string">"column&nbsp;:&nbsp;"</span><span>+</span><span class="keyword">new</span><span>&nbsp;String(kv.getColumn()));&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(<span class="string">"value&nbsp;:&nbsp;"</span><span>+</span><span class="keyword">new</span><span>&nbsp;String(kv.getValue()));&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;"> public static void selectByFilter(String tablename,List&lt;String&gt; arr) throws IOException{  
+        HTable table=new HTable(hbaseConfig,tablename);  
+        FilterList filterList = new FilterList();  
+        Scan s1 = new Scan();  
+        for(String v:arr){ // 各个条件之间是“与”的关系  
+            String [] s=v.split(",");  
+            filterList.addFilter(new SingleColumnValueFilter(Bytes.toBytes(s[0]),  
+                                                             Bytes.toBytes(s[1]),  
+                                                             CompareOp.EQUAL,Bytes.toBytes(s[2])  
+                                                             )  
+            );  
+            // 添加下面这一行后，则只返回指定的cell，同一行中的其他cell不返回  
+//          s1.addColumn(Bytes.toBytes(s[0]), Bytes.toBytes(s[1]));  
+        }  
+        s1.setFilter(filterList);  
+        ResultScanner ResultScannerFilterList = table.getScanner(s1);  
+        for(Result rr=ResultScannerFilterList.next();rr!=null;rr=ResultScannerFilterList.next()){  
+            for(KeyValue kv:rr.list()){  
+                System.out.println("row : "+new String(kv.getRow()));  
+                System.out.println("column : "+new String(kv.getColumn()));  
+                System.out.println("value : "+new String(kv.getValue()));  
+            }  
+        }  
+    }  
+</pre>
+<p><br>
+<strong>MultipleColumnPrefixFilter</strong></p>
+<p><strong>api上介绍如下</strong></p>
+<div class="dp-highlighter bg_html"><div class="bar"><div class="tools"><b>[html]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 1827px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_3" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_3" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=3&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-xml"><li class="alt"><span><span>This&nbsp;filter&nbsp;is&nbsp;used&nbsp;for&nbsp;selecting&nbsp;only&nbsp;those&nbsp;keys&nbsp;with&nbsp;columns&nbsp;that&nbsp;matches&nbsp;a&nbsp;particular&nbsp;prefix.&nbsp;For&nbsp;example,&nbsp;if&nbsp;prefix&nbsp;is&nbsp;'an',&nbsp;it&nbsp;will&nbsp;pass&nbsp;keys&nbsp;will&nbsp;columns&nbsp;like&nbsp;'and',&nbsp;'anti'&nbsp;but&nbsp;not&nbsp;keys&nbsp;with&nbsp;columns&nbsp;like&nbsp;'ball',&nbsp;'act'.&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="html" name="code" style="display: none;">This filter is used for selecting only those keys with columns that matches a particular prefix. For example, if prefix is 'an', it will pass keys will columns like 'and', 'anti' but not keys with columns like 'ball', 'act'. 
+
+</pre>
+<p>构造方法如下</p>
+<div class="dp-highlighter bg_html"><div class="bar"><div class="tools"><b>[html]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 1955px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_4" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_4" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=4&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-xml"><li class="alt"><span><span>public&nbsp;MultipleColumnPrefixFilter(byte[][]&nbsp;prefixes)&nbsp;&nbsp;</span></span></li></ol></div><pre class="html" name="code" style="display: none;">public MultipleColumnPrefixFilter(byte[][] prefixes)</pre>
+<p>传入多个prefix<br>
+源码里说明如下</p>
+<div class="dp-highlighter bg_html"><div class="bar"><div class="tools"><b>[html]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 2094px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_5" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_5" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=5&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-xml"><li class="alt"><span><span>public&nbsp;MultipleColumnPrefixFilter(final&nbsp;byte&nbsp;[][]&nbsp;prefixes)&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(prefixes&nbsp;!=&nbsp;null)&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(int&nbsp;<span class="attribute">i</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">0</span><span>;&nbsp;i&nbsp;</span><span class="tag">&lt;</span><span>&nbsp;</span><span class="tag-name">prefixes.length</span><span>;&nbsp;i++)&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!sortedPrefixes.add(prefixes[i]))&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;IllegalArgumentException&nbsp;("prefixes&nbsp;must&nbsp;be&nbsp;distinct");&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li></ol></div><pre class="html" name="code" style="display: none;">public MultipleColumnPrefixFilter(final byte [][] prefixes) {
+     if (prefixes != null) {
+       for (int i = 0; i &lt; prefixes.length; i++) {
+         if (!sortedPrefixes.add(prefixes[i]))
+           throw new IllegalArgumentException ("prefixes must be distinct");
+       }
+     }
+   }</pre>
+<p>示例代码如下：是我从网上找的，看了，没啥难理解的，</p>
+<div class="dp-highlighter bg_html"><div class="bar"><div class="tools"><b>[html]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 2333px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_6" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_6" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=6&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-xml"><li class="alt"><span><span>+public&nbsp;class&nbsp;TestMultipleColumnPrefixFilter&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;private&nbsp;final&nbsp;static&nbsp;HBaseTestingUtility&nbsp;<span class="attribute">TEST_UTIL</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HBaseTestingUtility();&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;@Test&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;public&nbsp;void&nbsp;testMultipleColumnPrefixFilter()&nbsp;throws&nbsp;IOException&nbsp;{&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;<span class="attribute">family</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">"Family"</span><span>;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;HTableDescriptor&nbsp;<span class="attribute">htd</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HTableDescriptor("TestMultipleColumnPrefixFilter");&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;htd.addFamily(new&nbsp;HColumnDescriptor(family));&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;HRegionInfo&nbsp;<span class="attribute">info</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HRegionInfo(htd,&nbsp;null,&nbsp;null,&nbsp;false);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;HRegionInfo&nbsp;<span class="attribute">info</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HRegionInfo(htd.getName(),&nbsp;null,&nbsp;null,&nbsp;false);&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;HRegion&nbsp;<span class="attribute">region</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">HRegion</span><span>.createHRegion(info,&nbsp;HBaseTestingUtility.&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getTestDir(),&nbsp;TEST_UTIL.getConfiguration(),&nbsp;htd);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">rows</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">generateRandomWords</span><span>(100,&nbsp;"row");&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">columns</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">generateRandomWords</span><span>(10000,&nbsp;"column");&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;long&nbsp;<span class="attribute">maxTimestamp</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">2</span><span>;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">kvList</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ArrayList</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;Map<span class="tag">&lt;</span><span class="tag-name">String</span><span>,&nbsp;List</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">prefixMap</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HashMap</span><span class="tag">&lt;</span><span class="tag-name">String</span><span>,&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.put("p",&nbsp;new&nbsp;ArrayList<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>());&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.put("q",&nbsp;new&nbsp;ArrayList<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>());&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.put("s",&nbsp;new&nbsp;ArrayList<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>());&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;<span class="attribute">valueString</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">"ValueString"</span><span>;&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;row:&nbsp;rows)&nbsp;{&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Put&nbsp;<span class="attribute">p</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;Put(Bytes.toBytes(row));&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;column:&nbsp;columns)&nbsp;{&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(long&nbsp;<span class="attribute">timestamp</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">1</span><span>;&nbsp;timestamp&nbsp;</span><span class="tag">&lt;</span><span>=&nbsp;maxTimestamp;&nbsp;timestamp++)&nbsp;{&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KeyValue&nbsp;<span class="attribute">kv</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">KeyValueTestUtil</span><span>.create(row,&nbsp;family,&nbsp;column,&nbsp;timestamp,&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valueString);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p.add(kv);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kvList.add(kv);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;s:&nbsp;prefixMap.keySet())&nbsp;{&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(column.startsWith(s))&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.get(s).add(kv);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;region.put(p);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;MultipleColumnPrefixFilter&nbsp;filter;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;Scan&nbsp;<span class="attribute">scan</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;Scan();&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan.setMaxVersions();&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;byte&nbsp;[][]&nbsp;<span class="attribute">filter_prefix</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;byte&nbsp;[2][];&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;filter_prefix[0]&nbsp;=&nbsp;new&nbsp;byte&nbsp;[]&nbsp;{'p'};&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;filter_prefix[1]&nbsp;=&nbsp;new&nbsp;byte&nbsp;[]&nbsp;{'q'};&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">filter</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;MultipleColumnPrefixFilter(filter_prefix);&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan.setFilter(filter);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">results</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ArrayList</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;InternalScanner&nbsp;<span class="attribute">scanner</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">region</span><span>.getScanner(scan);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;while(scanner.next(results));&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;assertEquals(prefixMap.get("p").size()&nbsp;+&nbsp;prefixMap.get("q").size(),&nbsp;results.size());&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;@Test&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;public&nbsp;void&nbsp;testMultipleColumnPrefixFilterWithManyFamilies()&nbsp;throws&nbsp;IOException&nbsp;{&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;<span class="attribute">family1</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">"Family1"</span><span>;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;<span class="attribute">family2</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">"Family2"</span><span>;&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;HTableDescriptor&nbsp;<span class="attribute">htd</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HTableDescriptor("TestMultipleColumnPrefixFilter");&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;htd.addFamily(new&nbsp;HColumnDescriptor(family1));&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;htd.addFamily(new&nbsp;HColumnDescriptor(family2));&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;HRegionInfo&nbsp;<span class="attribute">info</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HRegionInfo(htd.getName(),&nbsp;null,&nbsp;null,&nbsp;false);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;HRegion&nbsp;<span class="attribute">region</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">HRegion</span><span>.createHRegion(info,&nbsp;HBaseTestingUtility.&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getTestDir(),&nbsp;TEST_UTIL.getConfiguration(),&nbsp;htd);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">rows</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">generateRandomWords</span><span>(100,&nbsp;"row");&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">columns</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">generateRandomWords</span><span>(10000,&nbsp;"column");&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;long&nbsp;<span class="attribute">maxTimestamp</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">3</span><span>;&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">kvList</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ArrayList</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;Map<span class="tag">&lt;</span><span class="tag-name">String</span><span>,&nbsp;List</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">prefixMap</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HashMap</span><span class="tag">&lt;</span><span class="tag-name">String</span><span>,&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.put("p",&nbsp;new&nbsp;ArrayList<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>());&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.put("q",&nbsp;new&nbsp;ArrayList<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>());&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.put("s",&nbsp;new&nbsp;ArrayList<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>());&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;<span class="attribute">valueString</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">"ValueString"</span><span>;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;row:&nbsp;rows)&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Put&nbsp;<span class="attribute">p</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;Put(Bytes.toBytes(row));&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;column:&nbsp;columns)&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(long&nbsp;<span class="attribute">timestamp</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">1</span><span>;&nbsp;timestamp&nbsp;</span><span class="tag">&lt;</span><span>=&nbsp;maxTimestamp;&nbsp;timestamp++)&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double&nbsp;<span class="attribute">rand</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">Math</span><span>.random();&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KeyValue&nbsp;kv;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(rand&nbsp;<span class="tag">&lt;</span><span>&nbsp;</span><span class="tag-name">0.5</span><span>)&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">kv</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">KeyValueTestUtil</span><span>.create(row,&nbsp;family1,&nbsp;column,&nbsp;timestamp,&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valueString);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">kv</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">KeyValueTestUtil</span><span>.create(row,&nbsp;family2,&nbsp;column,&nbsp;timestamp,&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valueString);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p.add(kv);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kvList.add(kv);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;s:&nbsp;prefixMap.keySet())&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(column.startsWith(s))&nbsp;{&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;prefixMap.get(s).add(kv);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;region.put(p);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;MultipleColumnPrefixFilter&nbsp;filter;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;Scan&nbsp;<span class="attribute">scan</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;Scan();&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan.setMaxVersions();&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;byte&nbsp;[][]&nbsp;<span class="attribute">filter_prefix</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;byte&nbsp;[2][];&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;filter_prefix[0]&nbsp;=&nbsp;new&nbsp;byte&nbsp;[]&nbsp;{'p'};&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;filter_prefix[1]&nbsp;=&nbsp;new&nbsp;byte&nbsp;[]&nbsp;{'q'};&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">filter</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;MultipleColumnPrefixFilter(filter_prefix);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan.setFilter(filter);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">results</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ArrayList</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;InternalScanner&nbsp;<span class="attribute">scanner</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">region</span><span>.getScanner(scan);&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;while(scanner.next(results));&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;assertEquals(prefixMap.get("p").size()&nbsp;+&nbsp;prefixMap.get("q").size(),&nbsp;results.size());&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;@Test&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;public&nbsp;void&nbsp;testMultipleColumnPrefixFilterWithColumnPrefixFilter()&nbsp;throws&nbsp;IOException&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;<span class="attribute">family</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">"Family"</span><span>;&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;HTableDescriptor&nbsp;<span class="attribute">htd</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HTableDescriptor("TestMultipleColumnPrefixFilter");&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;htd.addFamily(new&nbsp;HColumnDescriptor(family));&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;HRegionInfo&nbsp;<span class="attribute">info</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HRegionInfo(htd.getName(),&nbsp;null,&nbsp;null,&nbsp;false);&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;HRegion&nbsp;<span class="attribute">region</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">HRegion</span><span>.createHRegion(info,&nbsp;HBaseTestingUtility.&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getTestDir(),&nbsp;TEST_UTIL.getConfiguration(),htd);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">rows</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">generateRandomWords</span><span>(100,&nbsp;"row");&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">columns</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">generateRandomWords</span><span>(10000,&nbsp;"column");&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;long&nbsp;<span class="attribute">maxTimestamp</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">2</span><span>;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;<span class="attribute">valueString</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">"ValueString"</span><span>;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;row:&nbsp;rows)&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Put&nbsp;<span class="attribute">p</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;Put(Bytes.toBytes(row));&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(String&nbsp;column:&nbsp;columns)&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(long&nbsp;<span class="attribute">timestamp</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">1</span><span>;&nbsp;timestamp&nbsp;</span><span class="tag">&lt;</span><span>=&nbsp;maxTimestamp;&nbsp;timestamp++)&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KeyValue&nbsp;<span class="attribute">kv</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">KeyValueTestUtil</span><span>.create(row,&nbsp;family,&nbsp;column,&nbsp;timestamp,&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valueString);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p.add(kv);&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;region.put(p);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;MultipleColumnPrefixFilter&nbsp;multiplePrefixFilter;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;Scan&nbsp;<span class="attribute">scan1</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;Scan();&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan1.setMaxVersions();&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;byte&nbsp;[][]&nbsp;<span class="attribute">filter_prefix</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;byte&nbsp;[1][];&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;filter_prefix[0]&nbsp;=&nbsp;new&nbsp;byte&nbsp;[]&nbsp;{'p'};&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">multiplePrefixFilter</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;MultipleColumnPrefixFilter(filter_prefix);&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan1.setFilter(multiplePrefixFilter);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">results1</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ArrayList</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;InternalScanner&nbsp;<span class="attribute">scanner1</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">region</span><span>.getScanner(scan1);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;while(scanner1.next(results1));&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;ColumnPrefixFilter&nbsp;singlePrefixFilter;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;Scan&nbsp;<span class="attribute">scan2</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;Scan();&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan2.setMaxVersions();&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">singlePrefixFilter</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ColumnPrefixFilter(Bytes.toBytes("p"));&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;scan2.setFilter(singlePrefixFilter);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">results2</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ArrayList</span><span class="tag">&lt;</span><span class="tag-name">KeyValue</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;InternalScanner&nbsp;<span class="attribute">scanner2</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">region</span><span>.getScanner(scan1);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;while(scanner2.next(results2));&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;assertEquals(results1.size(),&nbsp;results2.size());&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;generateRandomWords(int&nbsp;numberOfWords,&nbsp;String&nbsp;suffix)&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;Set<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">wordSet</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;HashSet</span><span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>();&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(int&nbsp;<span class="attribute">i</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">0</span><span>;&nbsp;i&nbsp;</span><span class="tag">&lt;</span><span>&nbsp;</span><span class="tag-name">numberOfWords</span><span>;&nbsp;i++)&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="attribute">lengthOfWords</span><span>&nbsp;=&nbsp;(int)&nbsp;(Math.random()*2)&nbsp;+&nbsp;1;&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char[]&nbsp;<span class="attribute">wordChar</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;char[lengthOfWords];&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(int&nbsp;<span class="attribute">j</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">0</span><span>;&nbsp;j&nbsp;</span><span class="tag">&lt;</span><span>&nbsp;</span><span class="tag-name">wordChar.length</span><span>;&nbsp;j++)&nbsp;{&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wordChar[j]&nbsp;=&nbsp;(char)&nbsp;(Math.random()&nbsp;*&nbsp;26&nbsp;+&nbsp;97);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;word;&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(<span class="attribute">suffix</span><span>&nbsp;==&nbsp;null)&nbsp;{&nbsp;&nbsp;</span></span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">word</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;String(wordChar);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attribute">word</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;String(wordChar)&nbsp;+&nbsp;suffix;&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wordSet.add(word);&nbsp;&nbsp;</span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;&nbsp;&nbsp;List<span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>&nbsp;</span><span class="attribute">wordList</span><span>&nbsp;=&nbsp;</span><span class="attribute-value">new</span><span>&nbsp;ArrayList</span><span class="tag">&lt;</span><span class="tag-name">String</span><span class="tag">&gt;</span><span>(wordSet);&nbsp;&nbsp;</span></span></li><li class=""><span>+&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;wordList;&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>+}&nbsp;&nbsp;</span></li><li class="alt"><span>+&nbsp;&nbsp;</span></li><li class=""><span>.&nbsp;&nbsp;</span></li></ol></div><pre class="html" name="code" style="display: none;">+public class TestMultipleColumnPrefixFilter {
++
++  private final static HBaseTestingUtility TEST_UTIL = new
++      HBaseTestingUtility();
++
++  @Test
++  public void testMultipleColumnPrefixFilter() throws IOException {
++    String family = "Family";
++    HTableDescriptor htd = new HTableDescriptor("TestMultipleColumnPrefixFilter");
++    htd.addFamily(new HColumnDescriptor(family));
++    // HRegionInfo info = new HRegionInfo(htd, null, null, false);
++    HRegionInfo info = new HRegionInfo(htd.getName(), null, null, false);
++    HRegion region = HRegion.createHRegion(info, HBaseTestingUtility.
++        getTestDir(), TEST_UTIL.getConfiguration(), htd);
++
++    List&lt;String&gt; rows = generateRandomWords(100, "row");
++    List&lt;String&gt; columns = generateRandomWords(10000, "column");
++    long maxTimestamp = 2;
++
++    List&lt;KeyValue&gt; kvList = new ArrayList&lt;KeyValue&gt;();
++
++    Map&lt;String, List&lt;KeyValue&gt;&gt; prefixMap = new HashMap&lt;String,
++        List&lt;KeyValue&gt;&gt;();
++
++    prefixMap.put("p", new ArrayList&lt;KeyValue&gt;());
++    prefixMap.put("q", new ArrayList&lt;KeyValue&gt;());
++    prefixMap.put("s", new ArrayList&lt;KeyValue&gt;());
++
++    String valueString = "ValueString";
++
++    for (String row: rows) {
++      Put p = new Put(Bytes.toBytes(row));
++      for (String column: columns) {
++        for (long timestamp = 1; timestamp &lt;= maxTimestamp; timestamp++) {
++          KeyValue kv = KeyValueTestUtil.create(row, family, column, timestamp,
++              valueString);
++          p.add(kv);
++          kvList.add(kv);
++          for (String s: prefixMap.keySet()) {
++            if (column.startsWith(s)) {
++              prefixMap.get(s).add(kv);
++            }
++          }
++        }
++      }
++      region.put(p);
++    }
++
++    MultipleColumnPrefixFilter filter;
++    Scan scan = new Scan();
++    scan.setMaxVersions();
++    byte [][] filter_prefix = new byte [2][];
++    filter_prefix[0] = new byte [] {'p'};
++    filter_prefix[1] = new byte [] {'q'};
++    
++    filter = new MultipleColumnPrefixFilter(filter_prefix);
++    scan.setFilter(filter);
++    List&lt;KeyValue&gt; results = new ArrayList&lt;KeyValue&gt;();  
++    InternalScanner scanner = region.getScanner(scan);
++    while(scanner.next(results));
++    assertEquals(prefixMap.get("p").size() + prefixMap.get("q").size(), results.size());
++  }
++
++  @Test
++  public void testMultipleColumnPrefixFilterWithManyFamilies() throws IOException {
++    String family1 = "Family1";
++    String family2 = "Family2";
++    HTableDescriptor htd = new HTableDescriptor("TestMultipleColumnPrefixFilter");
++    htd.addFamily(new HColumnDescriptor(family1));
++    htd.addFamily(new HColumnDescriptor(family2));
++    HRegionInfo info = new HRegionInfo(htd.getName(), null, null, false);
++    HRegion region = HRegion.createHRegion(info, HBaseTestingUtility.
++        getTestDir(), TEST_UTIL.getConfiguration(), htd);
++
++    List&lt;String&gt; rows = generateRandomWords(100, "row");
++    List&lt;String&gt; columns = generateRandomWords(10000, "column");
++    long maxTimestamp = 3;
++
++    List&lt;KeyValue&gt; kvList = new ArrayList&lt;KeyValue&gt;();
++
++    Map&lt;String, List&lt;KeyValue&gt;&gt; prefixMap = new HashMap&lt;String,
++        List&lt;KeyValue&gt;&gt;();
++
++    prefixMap.put("p", new ArrayList&lt;KeyValue&gt;());
++    prefixMap.put("q", new ArrayList&lt;KeyValue&gt;());
++    prefixMap.put("s", new ArrayList&lt;KeyValue&gt;());
++
++    String valueString = "ValueString";
++
++    for (String row: rows) {
++      Put p = new Put(Bytes.toBytes(row));
++      for (String column: columns) {
++        for (long timestamp = 1; timestamp &lt;= maxTimestamp; timestamp++) {
++          double rand = Math.random();
++          KeyValue kv;
++          if (rand &lt; 0.5) 
++            kv = KeyValueTestUtil.create(row, family1, column, timestamp,
++                valueString);
++          else 
++            kv = KeyValueTestUtil.create(row, family2, column, timestamp,
++                valueString);
++          p.add(kv);
++          kvList.add(kv);
++          for (String s: prefixMap.keySet()) {
++            if (column.startsWith(s)) {
++              prefixMap.get(s).add(kv);
++            }
++          }
++        }
++      }
++      region.put(p);
++    }
++
++    MultipleColumnPrefixFilter filter;
++    Scan scan = new Scan();
++    scan.setMaxVersions();
++    byte [][] filter_prefix = new byte [2][];
++    filter_prefix[0] = new byte [] {'p'};
++    filter_prefix[1] = new byte [] {'q'};
++    
++    filter = new MultipleColumnPrefixFilter(filter_prefix);
++    scan.setFilter(filter);
++    List&lt;KeyValue&gt; results = new ArrayList&lt;KeyValue&gt;();  
++    InternalScanner scanner = region.getScanner(scan);
++    while(scanner.next(results));
++    assertEquals(prefixMap.get("p").size() + prefixMap.get("q").size(), results.size());
++  }
++  
++  @Test
++  public void testMultipleColumnPrefixFilterWithColumnPrefixFilter() throws IOException {
++    String family = "Family";
++    HTableDescriptor htd = new HTableDescriptor("TestMultipleColumnPrefixFilter");
++    htd.addFamily(new HColumnDescriptor(family));
++    HRegionInfo info = new HRegionInfo(htd.getName(), null, null, false);
++    HRegion region = HRegion.createHRegion(info, HBaseTestingUtility.
++        getTestDir(), TEST_UTIL.getConfiguration(),htd);
++
++    List&lt;String&gt; rows = generateRandomWords(100, "row");
++    List&lt;String&gt; columns = generateRandomWords(10000, "column");
++    long maxTimestamp = 2;
++
++    String valueString = "ValueString";
++
++    for (String row: rows) {
++      Put p = new Put(Bytes.toBytes(row));
++      for (String column: columns) {
++        for (long timestamp = 1; timestamp &lt;= maxTimestamp; timestamp++) {
++          KeyValue kv = KeyValueTestUtil.create(row, family, column, timestamp,
++              valueString);
++          p.add(kv);
++        }
++      }
++      region.put(p);
++    }
++
++    MultipleColumnPrefixFilter multiplePrefixFilter;
++    Scan scan1 = new Scan();
++    scan1.setMaxVersions();
++    byte [][] filter_prefix = new byte [1][];
++    filter_prefix[0] = new byte [] {'p'};
++ 
++    multiplePrefixFilter = new MultipleColumnPrefixFilter(filter_prefix);
++    scan1.setFilter(multiplePrefixFilter);
++    List&lt;KeyValue&gt; results1 = new ArrayList&lt;KeyValue&gt;();  
++    InternalScanner scanner1 = region.getScanner(scan1);
++    while(scanner1.next(results1));
++    
++    ColumnPrefixFilter singlePrefixFilter;
++    Scan scan2 = new Scan();
++    scan2.setMaxVersions();
++    singlePrefixFilter = new ColumnPrefixFilter(Bytes.toBytes("p"));
++ 
++    scan2.setFilter(singlePrefixFilter);
++    List&lt;KeyValue&gt; results2 = new ArrayList&lt;KeyValue&gt;();  
++    InternalScanner scanner2 = region.getScanner(scan1);
++    while(scanner2.next(results2));
++    
++    assertEquals(results1.size(), results2.size());
++  }
++  
++  List&lt;String&gt; generateRandomWords(int numberOfWords, String suffix) {
++    Set&lt;String&gt; wordSet = new HashSet&lt;String&gt;();
++    for (int i = 0; i &lt; numberOfWords; i++) {
++      int lengthOfWords = (int) (Math.random()*2) + 1;
++      char[] wordChar = new char[lengthOfWords];
++      for (int j = 0; j &lt; wordChar.length; j++) {
++        wordChar[j] = (char) (Math.random() * 26 + 97);
++      }
++      String word;
++      if (suffix == null) {
++        word = new String(wordChar);
++      } else {
++        word = new String(wordChar) + suffix;
++      }
++      wordSet.add(word);
++    }
++    List&lt;String&gt; wordList = new ArrayList&lt;String&gt;(wordSet);
++    return wordList;
++  }
++}
++
+.</pre>
+<p><br>
+ColumnPrefixFilter</p>
+<div class="dp-highlighter bg_html"><div class="bar"><div class="tools"><b>[html]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 6159px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_7" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_7" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=7&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-xml"><li class="alt"><span><span>public&nbsp;class&nbsp;ColumnPrefixFilterextends&nbsp;FilterBaseThis&nbsp;filter&nbsp;is&nbsp;used&nbsp;for&nbsp;selecting&nbsp;only&nbsp;those&nbsp;keys&nbsp;with&nbsp;columns&nbsp;that&nbsp;matches&nbsp;a&nbsp;particular&nbsp;prefix.&nbsp;For&nbsp;example,&nbsp;if&nbsp;prefix&nbsp;is&nbsp;'an',&nbsp;it&nbsp;will&nbsp;pass&nbsp;keys&nbsp;will&nbsp;columns&nbsp;like&nbsp;'and',&nbsp;'anti'&nbsp;but&nbsp;not&nbsp;keys&nbsp;with&nbsp;columns&nbsp;like&nbsp;'ball',&nbsp;'act'.&nbsp;&nbsp;&nbsp;</span></span></li></ol></div><pre class="html" name="code" style="display: none;">public class ColumnPrefixFilterextends FilterBaseThis filter is used for selecting only those keys with columns that matches a particular prefix. For example, if prefix is 'an', it will pass keys will columns like 'and', 'anti' but not keys with columns like 'ball', 'act'. 
+
+</pre>
+<p>上面是类的说明<br>
+只有一个有参构造 <a href=""><strong>ColumnPrefixFilter</strong></a>(byte[]&nbsp;prefix) <br>
+这个类用法很简单，就是匹配前缀是prefix的rowkey，但是，不知道大家用了之后有什么感觉，我是用了，但是不起作用，有起作用的大牛告诉我下。</p>
+<p>无奈之下，只好选择PrefixFilter<br>
+<br>
+PrefixFilter</p>
+<p>类说明 ： </p>
+<p>Pass results that have same row prefix. </p>
+<p>同样的构造方法，跟ColumnPrefixFilter一模一样，用法也相同，</p>
+<p>基本上几个Filter就是这些了，慢慢的我再更新这个文章</p>
+<p>上段代码，我自己写的，使用中的代码</p>
+<p></p>
+<div class="dp-highlighter bg_java"><div class="bar"><div class="tools"><b>[java]</b> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="ViewSource" title="view plain" onclick="dp.sh.Toolbar.Command(&#39;ViewSource&#39;,this);return false;">view plain</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="CopyToClipboard" title="copy" onclick="dp.sh.Toolbar.Command(&#39;CopyToClipboard&#39;,this);return false;">copy</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="PrintSource" title="print" onclick="dp.sh.Toolbar.Command(&#39;PrintSource&#39;,this);return false;">print</a><a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" class="About" title="?" onclick="dp.sh.Toolbar.Command(&#39;About&#39;,this);return false;">?</a><div style="position: absolute; left: 842px; top: 6657px; width: 18px; height: 18px; z-index: 99;"><embed id="ZeroClipboardMovie_8" src="http://static.blog.csdn.net/scripts/ZeroClipboard/ZeroClipboard.swf" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="18" height="18" name="ZeroClipboardMovie_8" align="middle" allowscriptaccess="always" allowfullscreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="id=8&amp;width=18&amp;height=18" wmode="transparent"></div></div></div><ol start="1" class="dp-j"><li class="alt"><span><span class="keyword">public</span><span>&nbsp;</span><span class="keyword">static</span><span>&nbsp;String&nbsp;getKeywordTableRowkeyUseFilter(String&nbsp;filterString1,String&nbsp;filterString2)&nbsp;{&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;FilterList&nbsp;filterList&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;FilterList();&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;rowkeyValue&nbsp;=&nbsp;<span class="string">""</span><span>&nbsp;;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;Scan&nbsp;s1&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;Scan();&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;[]&nbsp;sf1=filterString1.split(<span class="string">","</span><span>);&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filterList.addFilter(<span class="keyword">new</span><span>&nbsp;SingleColumnValueFilter(Bytes.toBytes(sf1[</span><span class="number">0</span><span>]),&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bytes.toBytes(sf1[<span class="number">1</span><span>]),&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CompareOp.EQUAL,Bytes.toBytes(sf1[<span class="number">2</span><span>])&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;));&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;[]&nbsp;sf2=filterString2.split(<span class="string">","</span><span>);&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filterList.addFilter(<span class="keyword">new</span><span>&nbsp;SingleColumnValueFilter(Bytes.toBytes(sf2[</span><span class="number">0</span><span>]),&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bytes.toBytes(sf2[<span class="number">1</span><span>]),&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CompareOp.EQUAL,Bytes.toBytes(sf2[<span class="number">2</span><span>])&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;));&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filterList.addFilter(<span class="keyword">new</span><span>&nbsp;ColumnPrefixFilter(Bytes.toBytes(</span><span class="string">"3274980668:"</span><span>)))&nbsp;;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filterList.addFilter(<span class="keyword">new</span><span>&nbsp;PrefixFilter(Bytes.toBytes(</span><span class="string">"3274980668:"</span><span>)))&nbsp;;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;s1.setFilter(filterList);&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;ResultScanner&nbsp;ResultScannerFilterList;&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span><span>&nbsp;{&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ResultScannerFilterList&nbsp;=&nbsp;tableKeyword.getScanner(s1);&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">for</span><span>(Result&nbsp;rr=ResultScannerFilterList.next();rr!=</span><span class="keyword">null</span><span>;rr=ResultScannerFilterList.next()){&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;String&nbsp;rowkeyValueTmp&nbsp;&nbsp;=&nbsp;<span class="keyword">new</span><span>&nbsp;String(rr.getRow())&nbsp;;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rowkeyValue&nbsp;=&nbsp;rowkeyValue&nbsp;+&nbsp;<span class="string">"##"</span><span>&nbsp;+&nbsp;rowkeyValueTmp&nbsp;;&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;<span class="keyword">catch</span><span>&nbsp;(IOException&nbsp;e)&nbsp;{&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">//&nbsp;TODO&nbsp;Auto-generated&nbsp;catch&nbsp;block</span><span>&nbsp;&nbsp;</span></span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e.printStackTrace();&nbsp;&nbsp;</span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;</span></li><li class=""><span>&nbsp;&nbsp;&nbsp;&nbsp;log.warn(<span class="string">"rowkeyValue"</span><span>&nbsp;+&nbsp;rowkeyValue)&nbsp;;&nbsp;&nbsp;</span></span></li><li class="alt"><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span><span>&nbsp;rowkeyValue&nbsp;;&nbsp;&nbsp;</span></span></li><li class=""><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none;">	public static String getKeywordTableRowkeyUseFilter(String filterString1,String filterString2) {
+		FilterList filterList = new FilterList();
+		String rowkeyValue = "" ;
+		Scan s1 = new Scan();
+			String [] sf1=filterString1.split(",");
+			filterList.addFilter(new SingleColumnValueFilter(Bytes.toBytes(sf1[0]),
+					                                         Bytes.toBytes(sf1[1]),
+					                                         CompareOp.EQUAL,Bytes.toBytes(sf1[2])
+					                                         ));
+			String [] sf2=filterString2.split(",");
+			filterList.addFilter(new SingleColumnValueFilter(Bytes.toBytes(sf2[0]),
+                    Bytes.toBytes(sf2[1]),
+                    CompareOp.EQUAL,Bytes.toBytes(sf2[2])
+                    ));
+			filterList.addFilter(new ColumnPrefixFilter(Bytes.toBytes("3274980668:"))) ;
+			filterList.addFilter(new PrefixFilter(Bytes.toBytes("3274980668:"))) ;
+	
+		s1.setFilter(filterList);
+		ResultScanner ResultScannerFilterList;
+		try {
+			ResultScannerFilterList = tableKeyword.getScanner(s1);
+			for(Result rr=ResultScannerFilterList.next();rr!=null;rr=ResultScannerFilterList.next()){
+				String rowkeyValueTmp  = new String(rr.getRow()) ;
+				
+				rowkeyValue = rowkeyValue + "##" + rowkeyValueTmp ;
+				
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		log.warn("rowkeyValue" + rowkeyValue) ;
+		return rowkeyValue ;
+	}</pre>
+<p><br>
+PrefixFilter和ColumnPrefixFilter的用法几乎一样，但是在开发中，建议使用PrefixFilter</p>
+<p>&nbsp;</p>
+
+</div>
+
+
+
+<!-- Baidu Button BEGIN -->
+<div id="bdshare" class="bdshare_t bds_tools get-codes-bdshare" style="float: right;">
+<a class="bds_qzone" title="分享到QQ空间" href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#"></a>
+<a class="bds_tsina" title="分享到新浪微博" href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#"></a>
+<a class="bds_tqq" title="分享到腾讯微博" href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#"></a>
+<a class="bds_renren" title="分享到人人网" href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#"></a>
+<a class="bds_t163" title="分享到网易微博" href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#"></a>
+<span class="bds_more">更多</span>
+<a class="shareCount" href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" title="累计分享0次">0</a>
+</div>
+<!-- Baidu Button END -->
+
+
+<!--192.168.100.33-->
+<div class="article_next_prev">
+            <li class="prev_article"><span>上一篇：</span><a href="http://blog.csdn.net/liuxiaochen123/article/details/7729930" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_shangyipian&#39;])">Java判断字符串是否为数字的几种方法</a></li>
+            <li class="next_article"><span>下一篇：</span><a href="http://blog.csdn.net/liuxiaochen123/article/details/7752198" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_xiayipian&#39;])">多线程分页算法</a></li>
+</div>
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/bds_s_v2.js"></script>
+
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+        <div id="digg" articleid="7737718">
+            <dl id="btnDigg" class="digg digg_disable">
+                <dt onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_ding&#39;])">顶</dt>
+                <dd>3</dd>
+            </dl>
+            <dl id="btnBury" class="digg digg_disable">
+                <dt onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_cai&#39;])">踩</dt>
+                <dd>0</dd>
+            </dl>
+        </div>
+</div>
+      <dl class="blog-associat-tag">
+        <dt>相关主题推荐</dt>
+        <dd>
+                <a href="http://www.csdn.net/tag/filter" target="_blank">filter</a> 
+                <a href="http://www.csdn.net/tag/hbase" target="_blank">hbase</a> 
+                <a href="http://www.csdn.net/tag/hashmap" target="_blank">hashmap</a> 
+                <a href="http://www.csdn.net/tag/%E5%8D%9A%E5%AE%A2" target="_blank">博客</a> 
+                <a href="http://www.csdn.net/tag/%E6%BA%90%E7%A0%81" target="_blank">源码</a> 
+        </dd>
+    </dl> 
+    <dl class="blog-ass-articl tracking-ad" data-mod="popu_17">
+        <dt>相关博文推荐</dt>
+            <dd>
+                <a href="http://blog.csdn.net/u010142437/article/details/23162801" title="PointF 源码" target="_blank">PointF 源码</a></dd>
+            <dd>
+                <a href="http://blog.csdn.net/u014512204/article/details/23159781" title="如何实现两个或多个Spinner之间内容的关联" target="_blank">如何实现两个或多个Spinner之间内容...</a></dd>
+            <dd>
+                <a href="http://blog.csdn.net/u013896543/article/details/23160149" title="第6周作业-图像缩放显示" target="_blank">第6周作业-图像缩放显示</a></dd>
+            <dd>
+                <a href="http://blog.csdn.net/gshengod/article/details/22809185" title="android告别篇-对于源码我的一些看法" target="_blank">android告别篇-对于源码我的一些看法</a></dd>
+            <dd>
+                <a href="http://blog.csdn.net/u013256605/article/details/23140335" title="ThinkPHP框架引导类分析" target="_blank">ThinkPHP框架引导类分析</a></dd>
+            <dd>
+                <a href="http://blog.csdn.net/perfect8886/article/details/23135305" title="LeetCode | Two Sum" target="_blank">LeetCode | Two Sum</a></dd>
+            <dd>
+                <a href="http://blog.csdn.net/u014549402/article/details/23134479" title="小弟刚学java，有个不明白之处，求大家帮忙看下" target="_blank">小弟刚学java，有个不明白之处，求大家...</a></dd>
+            <dd>
+                <a href="http://blog.csdn.net/gateway6143/article/details/23134225" title="如何在CSDN博客中编辑公式？" target="_blank">如何在CSDN博客中编辑公式？</a></dd>
+    </dl>
+
+    <div id="ad_cen">
+        <script type="text/javascript">            BAIDU_CLB_SLOT_ID = "117306";</script>
+        <script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/o.js"></script><div id="BAIDU_DUP_wrapper_117306_0"></div><script charset="utf-8" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ecom"></script><script charset="utf-8" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/fixed7o.js"></script><script type="text/javascript"><!--
+google_ad_client = "ca-pub-1076724771190722";
+/* blog正文下方728x90 */
+google_ad_slot = "4497271841";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/show_ads.js">
+</script><ins style="display:inline-table;border:none;height:90px;margin:0;padding:0;position:relative;visibility:visible;width:728px;background-color:transparent"><ins id="aswift_0_anchor" style="display:block;border:none;height:90px;margin:0;padding:0;position:relative;visibility:visible;width:728px;background-color:transparent"><iframe width="728" height="90" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;"></iframe></ins></ins>
+    </div>
+    <script type="text/javascript">
+        //new Ad(4, 'ad_cen');
+    </script>
+<div id="comment_title" class="panel_head">
+    查看评论<a name="comments"></a></div>
+<div id="comment_list"><dl class="comment_item comment_topic" id="comment_item_2465439"><dt class="comment_head" floor="2">2楼 <span class="user"><a class="username" href="http://blog.csdn.net/liuxiaochen123" target="_blank">刘小小尘</a> <span class="ptime">2012-12-12 09:54发表</span>  <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="2465439" username="liuxiaochen123"> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/liuxiaochen123" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/3_liuxiaochen123.jpg" width="40" height="40"></a></dd><dd class="comment_body">谢谢指教，呵呵，我记住了</dd></dl><dl class="comment_item comment_topic" id="comment_item_2464568"><dt class="comment_head" floor="1">1楼 <span class="user"><a class="username" href="http://blog.csdn.net/zhouleilei" target="_blank">Mr-zhou</a> <span class="ptime">2012-12-11 15:56发表</span>  <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="2464568" username="zhouleilei"> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/zhouleilei" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/3_zhouleilei.jpg" width="40" height="40"></a></dd><dd class="comment_body">ColumnPrefixFilter  仅仅是过滤列名 而不是value<br>比如 info:userid info:nickname<br>使用方式如下<br>scan 'table_name',FILTER=&gt;"ColumnPrefixFilter(‘nick’)" 这样来值查找一列，对于column 非常多的情况下适用。</dd><dl class="comment_item comment_reply" id="comment_item_2465440"><dt class="comment_head" floor="1">Re: <span class="user"><a class="username" href="http://blog.csdn.net/liuxiaochen123" target="_blank">刘小小尘</a> <span class="ptime">2012-12-12 09:54发表</span>  <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#reply" class="cmt_btn reply" title="回复">[回复]</a> <span class="comment_manage" style="display:none;" commentid="2465440" username="liuxiaochen123"> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#quote" class="cmt_btn quote" title="引用">[引用]</a> <a href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#report" class="cmt_btn report" title="举报">[举报]</a></span></span></dt><dd class="comment_userface"><a href="http://blog.csdn.net/liuxiaochen123" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/3_liuxiaochen123.jpg" width="40" height="40"></a></dd><dd class="comment_body">回复zhouleilei：谢谢指教，呵呵，我记住了</dd></dl></dl><div class="clear"></div></div>
+<div id="comment_bar" style="display: none;">
+</div>
+<div id="comment_form"><div class="guest_link">您还没有登录,请<a href="javascript:void(0);" onclick="javascript:csdn.showLogin(function (dat) {js_logined(dat.data.userName);});">[登录]</a>或<a href="http://passport.csdn.net/account/register?from=http%3A%2F%2Fblog.csdn.net%2Fliuxiaochen123%2Farticle%2Fdetails%2F7737718">[注册]</a></div></div>
+<div class="announce">
+    * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+<script type="text/javascript">
+    var fileName = '7737718';
+    var commentscount = 3;
+    var islock = false
+</script>
+<script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/comment.js"></script>
+    <div id="ad_bot">
+    <iframe id="ad_frm_0" frameborder="0" scrolling="no" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ad(1).htm" style="border-width: 0px; overflow: hidden; width: 738px; height: 170px;"></iframe></div>
+    <script type="text/javascript">
+    new Ad(5, 'ad_bot');
+    </script>
+<div id="report_dialog">
+</div>
+<div id="d-top" style="display: block;">
+    <a id="d-top-a" href="http://blog.csdn.net/liuxiaochen123/article/details/7737718#" title="回到顶部" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_huidaodingbu&#39;])">
+        <img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/top.png" alt="TOP"></a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        var d_top = $('#d-top');
+        document.onscroll = function ()
+        {
+            var scrTop = (document.body.scrollTop || document.documentElement.scrollTop);
+            if (scrTop > 500)
+            {
+                d_top.show();
+            } else
+            {
+                d_top.hide();
+            }
+        }
+        $('#d-top-a').click(function ()
+        {
+            scrollTo(0, 0);
+            this.blur();
+            return false;
+        });
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+<div class="tag_list">
+    <h5>
+        <a href="http://www.csdn.net/tag/" target="_blank">核心技术类目</a></h5>
+    <div class="classify">
+<a title="全部主题" href="http://www.csdn.net/tag" target="_blank" onclick="LogClickCount(this,336);">全部主题</a>
+<a title="Java" href="http://www.csdn.net/tag/Java" target="_blank" onclick="LogClickCount(this,336);">Java</a>
+<a title="VPN" href="http://www.csdn.net/tag/vpn" target="_blank" onclick="LogClickCount(this,336);">VPN</a>
+<a title="Android" href="http://www.csdn.net/tag/android" target="_blank" onclick="LogClickCount(this,336);">Android</a>
+<a title="iOS" href="http://www.csdn.net/tag/ios" target="_blank" onclick="LogClickCount(this,336);">iOS</a>
+<a title="ERP" href="http://www.csdn.net/tag/erp" target="_blank" onclick="LogClickCount(this,336);">ERP</a>
+<a title="IE10" href="http://www.csdn.net/tag/ie10" target="_blank" onclick="LogClickCount(this,336);">IE10</a>
+<a title="Eclipse" href="http://www.csdn.net/tag/eclipse" target="_blank" onclick="LogClickCount(this,336);">Eclipse</a>
+<a title="CRM" href="http://www.csdn.net/tag/crm" target="_blank" onclick="LogClickCount(this,336);">CRM</a>
+<a title="JavaScript" href="http://www.csdn.net/tag/javascript" target="_blank" onclick="LogClickCount(this,336);">JavaScript</a>
+<a title="Ubuntu" href="http://www.csdn.net/tag/ubuntu" target="_blank" onclick="LogClickCount(this,336);">Ubuntu</a>
+<a title="NFC" href="http://www.csdn.net/tag/nfc" target="_blank" onclick="LogClickCount(this,336);">NFC</a>
+<a title="WAP" href="http://www.csdn.net/tag/wap" target="_blank" onclick="LogClickCount(this,336);">WAP</a>
+<a title="jQuery" href="http://www.csdn.net/tag/jquery" target="_blank" onclick="LogClickCount(this,336);">jQuery</a>
+<a title="数据库" href="http://www.csdn.net/tag/%E6%95%B0%E6%8D%AE%E5%BA%93" target="_blank" onclick="LogClickCount(this,336);">数据库</a>
+<a title="BI" href="http://www.csdn.net/tag/bi" target="_blank" onclick="LogClickCount(this,336);">BI</a>
+<a title="HTML5" href="http://www.csdn.net/tag/html5" target="_blank" onclick="LogClickCount(this,336);">HTML5</a>
+<a title="Spring" href="http://www.csdn.net/tag/spring" target="_blank" onclick="LogClickCount(this,336);">Spring</a>
+<a title="Apache" href="http://www.csdn.net/tag/apache" target="_blank" onclick="LogClickCount(this,336);">Apache</a>
+<a title="Hadoop" href="http://www.csdn.net/tag/hadoop" target="_blank" onclick="LogClickCount(this,336);">Hadoop</a>
+<a title=".NET" href="http://www.csdn.net/tag/.net" target="_blank" onclick="LogClickCount(this,336);">.NET</a>
+<a title="API" href="http://www.csdn.net/tag/api" target="_blank" onclick="LogClickCount(this,336);">API</a>
+<a title="HTML" href="http://www.csdn.net/tag/html" target="_blank" onclick="LogClickCount(this,336);">HTML</a>
+<a title="SDK" href="http://www.csdn.net/tag/sdk" target="_blank" onclick="LogClickCount(this,336);">SDK</a>
+<a title="IIS" href="http://www.csdn.net/tag/iis" target="_blank" onclick="LogClickCount(this,336);">IIS</a>
+<a title="Fedora" href="http://www.csdn.net/tag/fedora" target="_blank" onclick="LogClickCount(this,336);">Fedora</a>
+<a title="XML" href="http://www.csdn.net/tag/xml" target="_blank" onclick="LogClickCount(this,336);">XML</a>
+<a title="LBS" href="http://www.csdn.net/tag/lbs" target="_blank" onclick="LogClickCount(this,336);">LBS</a>
+<a title="Unity" href="http://www.csdn.net/tag/unity" target="_blank" onclick="LogClickCount(this,336);">Unity</a>
+<a title="Splashtop" href="http://www.csdn.net/tag/splashtop" target="_blank" onclick="LogClickCount(this,336);">Splashtop</a>
+<a title="UML" href="http://www.csdn.net/tag/uml" target="_blank" onclick="LogClickCount(this,336);">UML</a>
+<a title="components" href="http://www.csdn.net/tag/components" target="_blank" onclick="LogClickCount(this,336);">components</a>
+<a title="Windows Mobile" href="http://www.csdn.net/tag/windowsmobile" target="_blank" onclick="LogClickCount(this,336);">Windows Mobile</a>
+<a title="Rails" href="http://www.csdn.net/tag/rails" target="_blank" onclick="LogClickCount(this,336);">Rails</a>
+<a title="QEMU" href="http://www.csdn.net/tag/qemu" target="_blank" onclick="LogClickCount(this,336);">QEMU</a>
+<a title="KDE" href="http://www.csdn.net/tag/kde" target="_blank" onclick="LogClickCount(this,336);">KDE</a>
+<a title="Cassandra" href="http://www.csdn.net/tag/cassandra" target="_blank" onclick="LogClickCount(this,336);">Cassandra</a>
+<a title="CloudStack" href="http://www.csdn.net/tag/cloudstack" target="_blank" onclick="LogClickCount(this,336);">CloudStack</a>
+<a title="FTC" href="http://www.csdn.net/tag/ftc" target="_blank" onclick="LogClickCount(this,336);">FTC</a>
+<a title="coremail" href="http://www.csdn.net/tag/coremail" target="_blank" onclick="LogClickCount(this,336);">coremail</a>
+<a title="OPhone " href="http://www.csdn.net/tag/ophone" target="_blank" onclick="LogClickCount(this,336);">OPhone </a>
+<a title="CouchBase" href="http://www.csdn.net/tag/couchbase" target="_blank" onclick="LogClickCount(this,336);">CouchBase</a>
+<a title="云计算" href="http://www.csdn.net/tag/%E4%BA%91%E8%AE%A1%E7%AE%97" target="_blank" onclick="LogClickCount(this,336);">云计算</a>
+<a title="iOS6" href="http://www.csdn.net/tag/iOS6" target="_blank" onclick="LogClickCount(this,336);">iOS6</a>
+<a title="Rackspace " href="http://www.csdn.net/tag/rackspace" target="_blank" onclick="LogClickCount(this,336);">Rackspace </a>
+<a title="Web App" href="http://www.csdn.net/tag/webapp" target="_blank" onclick="LogClickCount(this,336);">Web App</a>
+<a title="SpringSide" href="http://www.csdn.net/tag/springside" target="_blank" onclick="LogClickCount(this,336);">SpringSide</a>
+<a title="Maemo" href="http://www.csdn.net/tag/maemo" target="_blank" onclick="LogClickCount(this,336);">Maemo</a>
+<a title="Compuware" href="http://www.csdn.net/tag/compuware" target="_blank" onclick="LogClickCount(this,336);">Compuware</a>
+<a title="大数据" href="http://www.csdn.net/tag/%E5%A4%A7%E6%95%B0%E6%8D%AE" target="_blank" onclick="LogClickCount(this,336);">大数据</a>
+<a title="aptech" href="http://www.csdn.net/tag/aptech" target="_blank" onclick="LogClickCount(this,336);">aptech</a>
+<a title="Perl" href="http://www.csdn.net/tag/perl" target="_blank" onclick="LogClickCount(this,336);">Perl</a>
+<a title="Tornado" href="http://www.csdn.net/tag/tornado" target="_blank" onclick="LogClickCount(this,336);">Tornado</a>
+<a title="Ruby" href="http://www.csdn.net/tag/ruby" target="_blank" onclick="LogClickCount(this,336);">Ruby</a>
+<a title="Hibernate" href="http://www.csdn.net/hibernate" target="_blank" onclick="LogClickCount(this,336);">Hibernate</a>
+<a title="ThinkPHP" href="http://www.csdn.net/tag/thinkphp" target="_blank" onclick="LogClickCount(this,336);">ThinkPHP</a>
+<a title="Spark" href="http://www.csdn.net/tag/spark" target="_blank" onclick="LogClickCount(this,336);">Spark</a>
+<a title="HBase" href="http://www.csdn.net/tag/hbase" target="_blank" onclick="LogClickCount(this,336);">HBase</a>
+<a title="Pure" href="http://www.csdn.net/tag/pure" target="_blank" onclick="LogClickCount(this,336);">Pure</a>
+<a title="Solr" href="http://www.csdn.net/tag/solr" target="_blank" onclick="LogClickCount(this,336);">Solr</a>
+<a title="Angular" href="http://www.csdn.net/tag/angular" target="_blank" onclick="LogClickCount(this,336);">Angular</a>
+<a title="Cloud Foundry" href="http://www.csdn.net/tag/cloudfoundry" target="_blank" onclick="LogClickCount(this,336);">Cloud Foundry</a>
+<a title="Redis" href="http://www.csdn.net/tag/redis" target="_blank" onclick="LogClickCount(this,336);">Redis</a>
+<a title="Scala" href="http://www.csdn.net/tag/scala" target="_blank" onclick="LogClickCount(this,336);">Scala</a>
+<a title="Django" href="http://www.csdn.net/tag/django" target="_blank" onclick="LogClickCount(this,336);">Django</a>
+<a title="Bootstrap" href="http://www.csdn.net/tag/bootstrap" target="_blank" onclick="LogClickCount(this,336);">Bootstrap</a>
+    </div>
+</div>
+
+                    <div class="clear">
+                    </div>
+                </div>
+            </div>
+            <div id="side">
+    <div class="side">
+<div id="panel_Category" class="panel">
+    <ul class="panel_head"><span>博客专栏</span></ul>
+    <ul class="panel_body" id="sp_column">
+    <table cellpadding="0" cellspacing="0"><tbody><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/lucene.html" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/column.jpg" style="width:75px;height:75px;"></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/lucene.html" target="_blank">lucene使用教程</a>
+    <p>文章：7篇</p>
+    <span>阅读：5742</span>
+    </td>
+    </tr></tbody></table>
+    <table cellpadding="0" cellspacing="0"><tbody><tr>
+    <td style="padding:10px 10px 0 0;">
+    <a href="http://blog.csdn.net/column/details/hbase.html" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/20120723112837669.jpg" style="width:75px;height:75px;"></a>
+    </td>
+    <td style="padding:10px 0; vertical-align:top;">
+    <a href="http://blog.csdn.net/column/details/hbase.html" target="_blank">HBase实用过程</a>
+    <p>文章：21篇</p>
+    <span>阅读：28116</span>
+    </td>
+    </tr></tbody></table>
+    </ul>
+</div><div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/liuxiaochen123" target="_blank">
+    <img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/1_liuxiaochen123.jpg" title="访问我的空间" style="max-width:90%">
+    </a>
+    <br>
+    <span><a href="http://my.csdn.net/liuxiaochen123" class="user_name" target="_blank">刘小小尘</a></span>
+</div>
+<div class="interact">
+<a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_guanzhu&#39;])"></a>
+<a href="javascript:void(0);" class="letter" onclick="loginto(1)" title="[发私信]"></a>
+</div>
+<div id="blog_medal">
+<div id="bms_box"><a href="http://medal.blog.csdn.net/allmedal.aspx" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/columnstar_s.gif" onmouseover="m_over_m(this,0)" onmouseout="m_out_m()" alt=""></a><a href="http://medal.blog.csdn.net/allmedal.aspx" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/holdon_s2.gif" onmouseover="m_over_m(this,1)" onmouseout="m_out_m()" alt=""></a></div></div>
+<ul id="blog_rank">
+    <li>访问：<span>89217次</span></li>
+    <li>积分：<span>1962分</span></li>
+    <li>排名：<span>第5763名</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>93篇</span></li>
+    <li>转载：<span>37篇</span></li>
+    <li>译文：<span>11篇</span></li>
+    <li>评论：<span>37条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search" target="_blank">
+        <span><input id="inputSearch" type="text" class="blogsearch" title="请输入关键字"></span>
+        <input id="btnSubmit" type="submit" value="搜索" title="search in blog">
+        <input type="hidden" name="q" id="inputQ">
+        <input type="hidden" name="t" value="blog">
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div><div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1187715" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">HBase实际使用</a><span>(4)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1108623" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">深入浅出学习Hibernate框架（一）：从实例入手初识Hibernate框架</a><span>(4)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1227436" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">服务器</a><span>(3)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1364314" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">Git</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1364315" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">代码托管</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1364316" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">版本控制</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1365409" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">Timer</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1365410" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">TimerTask</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1365411" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">java</a><span>(2)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1365412" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">定时器</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1393687" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">ruby 走起</a><span>(6)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1411867" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">javascript</a><span>(5)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/liuxiaochen123/article/category/1411868" onclick="_gaq.push([&#39;_trackEvent&#39;,&#39;function&#39;, &#39;onclick&#39;, &#39;blog_articles_wenzhangfenlei&#39;]); ">javascript 学习实录</a><span>(10)</span>
+            </li>
+</ul>
+</div><div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list"><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/09">2013年09月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/08">2013年08月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/07">2013年07月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/05">2013年05月</a><span>(13)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/04">2013年04月</a><span>(12)</span></li><span class="hidelist" style="display:none;"><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/03">2013年03月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/02">2013年02月</a><span>(5)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2013/01">2013年01月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/12">2012年12月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/11">2012年11月</a><span>(5)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/10">2012年10月</a><span>(5)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/09">2012年09月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/08">2012年08月</a><span>(21)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/07">2012年07月</a><span>(26)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/06">2012年06月</a><span>(14)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/04">2012年04月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2012/03">2012年03月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2011/11">2011年11月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2011/06">2011年06月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/liuxiaochen123/article/month/2011/05">2011年05月</a><span>(1)</span></li></span><div id="archive_list_button" class="list_closed">展开</div></div>
+</ul>
+</div>
+<div id="hotarticls" class="panel">
+<ul class="panel_head"><span>阅读排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET.htm" title="Hbase使用filter快速高效查询">Hbase使用filter快速高效查询</a><span>(7843)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/8703078" title="Sublime Text 3 破解版 + 注册机 + 汉化包">Sublime Text 3 破解版 + 注册机 + 汉化包</a><span>(2191)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7788176" title="Hbase 源码分析4 - Get 流程及rpc原理">Hbase 源码分析4 - Get 流程及rpc原理</a><span>(2156)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7848470" title="lucene使用教程7 --lucene实例代码">lucene使用教程7 --lucene实例代码</a><span>(1845)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7483705" title="java list序列化">java list序列化</a><span>(1824)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7715401" title="Java 判断两个日期相差多少天">Java 判断两个日期相差多少天</a><span>(1819)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7700373" title="hadoop单机配置">hadoop单机配置</a><span>(1816)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/8786715" title="hadoop MapReduce实例解析">hadoop MapReduce实例解析</a><span>(1802)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7779406" title="布隆过滤器 (Bloom Filter) 详解">布隆过滤器 (Bloom Filter) 详解</a><span>(1619)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7458594" title="用CombineFileInputFormat处理小文件的mapreduce程序">用CombineFileInputFormat处理小文件的mapreduce程序</a><span>(1587)</span>
+</li>
+</ul>
+</div>
+<div id="hotarticls2" class="panel">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7783520" title="Hive与HBase的整合">Hive与HBase的整合</a><span>(5)</span>
+</li>
+<li>
+<a href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET.htm" title="Hbase使用filter快速高效查询">Hbase使用filter快速高效查询</a><span>(3)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7823224" title="ehcache配置文件详解">ehcache配置文件详解</a><span>(3)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7774226" title="存入hbase的方法">存入hbase的方法</a><span>(3)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7695667" title="HBase专题介绍 1">HBase专题介绍 1</a><span>(2)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7718323" title="MapReduce 中如何处理HBase中的数据？如何读取HBase数据给Map？如何将结果存储到HBase中？">MapReduce 中如何处理HBase中的数据？如何读取HBase数据给Map？如何将结果存储到HBase中？</a><span>(2)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7458594" title="用CombineFileInputFormat处理小文件的mapreduce程序">用CombineFileInputFormat处理小文件的mapreduce程序</a><span>(2)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7827201" title="HTablePool实例代码">HTablePool实例代码</a><span>(2)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/8668074" title="两分钟学会在GitHub托管代码">两分钟学会在GitHub托管代码</a><span>(2)</span>
+</li>
+<li>
+<a href="http://blog.csdn.net/liuxiaochen123/article/details/7700373" title="hadoop单机配置">hadoop单机配置</a><span>(2)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend"><iframe id="ad_frm_1" frameborder="0" scrolling="no" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ad.htm" style="border-width: 0px; overflow: hidden; width: 194px; height: 272px;"></iframe></ul>
+</div>
+<script type="text/javascript">
+ new Ad(12, 'ad_commend');
+</script><div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/11993761#comments">使用spring 并加载模板发送Email 发邮件 java 模板</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/liuxiaochen123" class="user_name">刘小小尘</a>:
+有，网上就可以找到的
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/11993761#comments">使用spring 并加载模板发送Email 发邮件 java 模板</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/u012045561" class="user_name">猎界圣使</a>:
+你好，请问有jar包吗？
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/7827201#comments">HTablePool实例代码</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/liuxiaochen123" class="user_name">刘小小尘</a>:
+pool 不就相当于连接池吗，你可以这么理解 里面就可以放hbase对象， 我好久不用了 好多都忘记...
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/7827201#comments">HTablePool实例代码</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/yuzepan1" class="user_name">yuzepan1</a>:
+博主  你好，看了你写的代码我不是很懂，实例化htablepool后为什么不是往里面填充htable...
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/7695667#comments">HBase专题介绍 1</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/zqhxuyuan" class="user_name">zqhxuyuan</a>:
+图片要翻墙才能看到啊。。。
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/7695667#comments">HBase专题介绍 1</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/zqhxuyuan" class="user_name">zqhxuyuan</a>:
+图片要翻墙才能看到啊。。。
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/8703078#comments">Sublime Text 3 破解版 + 注册机 + 汉化包</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/echo_start" class="user_name">echo_start</a>:
+可惜过期了呀！！
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/7848360#comments">lucene使用教程4 --常用类的对象之IndexSearcher</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/u011552756" class="user_name">gotobackto</a>:
+Lucene4完整版教程我有的，2个多Ｇ，从最基础的什么是Lucene、Lucene系统架构开始讲起...
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/8031510#comments">java自定义ClassLoader实例代码</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/bluend1004" class="user_name">挨踢兔</a>:
+拜读了lz的文章，写的很通俗易懂，我想问下，在真正项目中什么时候需要自己写一个classloader...
+    </p>
+    </li>
+    <li>
+    <a href="http://blog.csdn.net/liuxiaochen123/article/details/7718323#comments">MapReduce 中如何处理HBase中的数据？如何读取HBase数据给Map？如何将结果存储到HBase中？</a>
+    <p style="margin:0px;"><a href="http://blog.csdn.net/liuxiaochen123" class="user_name">刘小小尘</a>:
+@allanmcgrady:你是谁？
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+</div>
+
+            <div class="clear">
+            </div>
+        </div>
+        
+
+<script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/newblog.min.js"></script>
+<script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/showblogmedal.ashx"></script>
+<script type="text/javascript">
+    document.write('<script type="text/javascript" src="http://csdnimg.cn/pubfooter/js/publib_footer.js?' + Math.floor(new Date() / 120000).toString(36) + '="></' + 'script>');
+</script><script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/publib_footer.js"></script><link rel="stylesheet" type="text/css" href="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/pub_footer_2012.css"><div id="pub_footerall" class="pub_footerall"><dl><dt></dt> <dd><a href="http://www.csdn.net/company/about.html" target="_blank">公司简介</a>|<a href="http://www.csdn.net/company/recruit.html" target="_blank">招贤纳士</a>|<a href="http://www.csdn.net/company/marketing.html" target="_blank">广告服务</a>|<a href="http://www.csdn.net/company/account.html" target="_blank">银行汇款帐号</a>|<a href="http://www.csdn.net/company/contact.html" target="_blank">联系方式</a>|<a href="http://www.csdn.net/company/statement.html" target="_blank">版权声明</a>|<a href="http://www.csdn.net/company/layer.html" target="_blank">法律顾问</a>|<a href="mailto:webmaster@csdn.net">问题报告</a>|<a target="_blank" href="http://www.csdn.net/friendlink.html">合作伙伴</a>|<a href="http://bbs.csdn.net/forums/Service" target="_blank">论坛反馈</a></dd><dd><a href="http://wpa.qq.com/msgrd?v=3&uin=2355263776&site=qq&menu=yes" target="_blank" class="qq">网站客服</a> <a href="http://wpa.qq.com/msgrd?v=3&uin=2251809102&site=qq&menu=yes" target="_blank" class="qq">杂志客服</a> <a href="http://e.weibo.com/csdnsupport/profile" target="_blank" class="weibo">微博客服</a> <a href="mailto:webmaster@csdn.net" class="email" title="联系邮箱">webmaster@csdn.net</a> <span class="phone" title="服务热线">400-600-2320</span></dd><dd>京&nbsp;ICP&nbsp;证&nbsp;070598&nbsp;号</dd><dd>北京创新乐知信息技术有限公司 版权所有</dd><dd>江苏乐知网络技术有限公司 提供商务支持</dd><dd>Copyright © 1999-2014, CSDN.NET, All Rights Reserved&nbsp;<a href="http://www.hd315.gov.cn/beian/view.asp?bianhao=010202001032100010" target="_blank"><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/gongshang_logos.gif" alt="GongshangLogo" title=""></a></dd></dl></div><div id="note1" class="csdn_note" style="display:none; position:absolute; z-index:9999; width:440px">  <span class="notice_top_arrow"><span class="inner"></span></span>  <div class="box"></div></div><div class="csdn_notice_tip" style="display: none; position: absolute; z-index: 9990; width: 170px;">  <iframe src="about:blank" frameborder="0" scrolling="no" style="z-index:-1;position:absolute;top:0;left:0;width:100%;height:100%;background:transparent"></iframe>  <div class="tip_text">您有<strong>0</strong>条新通知</div>  <a href="javascript:void 0" class="close2"></a></div><script id="noticeScript" type="text/javascript" btnid="header_notice_num" wrapid="note1" count="5" subcount="5" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/notify.js"></script>
+    <script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/login.js"></script>
+<script type="text/javascript">document.write("<img src=http://counter.csdn.net/pv.aspx?id=24 border=0 width=0 height=0>");</script><img src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/pv.aspx" border="0" width="0" height="0">
+<script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/counter.js"></script><script type="text/javascript" charset="UTF-8" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/msg.popup.js"></script>
+<script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/ad-blog.js"></script>
+<script type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/count.js"></script><iframe src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/logs.htm" frameborder="0" width="0" height="0"></iframe>
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a>"
+                    + "<a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+    });
+</script>
+
+    </div>
+      <!--new top-->
+    
+    <script id="csdn-toolbar-id" btnid="header_notice_num" wrapid="note1" count="5" subcount="5" type="text/javascript" src="./Hbase使用filter快速高效查询 - liuxiaochen123的专栏 - 博客频道 - CSDN.NET_files/toolbar.js"></script>
+     <!--new top-->
+
+
+</body></html>
