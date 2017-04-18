@@ -1,0 +1,13 @@
+1、nignix 
+docker run --name my-nginx -v /demo/nginx:/usr/share/nginx/html:ro -d nginx:1.10
+
+2、mysql
+docker run -p 9000:3306 -v /test /var/lib/mysql --name ct-mysql-1 -e MYSQL_ROOT_PASSWORD=Istuary88 -d mysql:5.7
+
+3、jenkins
+ocker run --name myjenkins -p 7000:8080 -p 50000:50000 -v /demo/jenkins:/var/jenkins_home jenkins
+
+4、reids
+docker run --name my-redis -d redis
+
+进入命令行交互：docker exec -it my-redis redis-cli
